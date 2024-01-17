@@ -1,7 +1,7 @@
 import openpyxl
 
 book = openpyxl.load_workbook("table.xlsx")
-sheetname = book.sheetnames[0];
+sheetname = book.sheetnames[0]
 for name in book.sheetnames:
     if 'TT' in name:
         sheetname = name
@@ -17,14 +17,14 @@ for val in sh.values:
 sh.delete_rows(1, remove_rows)
 
 CourseLength = dict()
-
 for r in sh.merged_cells:
     CourseLength[(r.min_row, r.min_col)] = r.size["columns"]
 
 Venue = ""
 Day = 0
 Section = ""
-Periods = []
+Periods = dict()  # Use a dictionary to store unique entries
+
 for row, val in enumerate(sh.values):
     if val[1] == None:
         Day += 1
@@ -41,27 +41,24 @@ for row, val in enumerate(sh.values):
                 else:
                     etime = 0
                     continue
-                if Course == "Obj. Oriented Programming":
-                    Course = "Object Oriented Programming"
-                elif Course == "Obj. Ori. Analysis & Design":
-                    Course = "Object Oriented Analysis and Design"
-                elif Course == "English Comp Lab":
-                    Course = "English Composition and Comprehension Lab"
-                Periods.append(
-                    [Course, Section, str(stime - 40), str(etime - 40), str(Day), Venue]
-                )
+
+                # Use a unique key to check for duplicates
+                key = (Course, Section, str(stime - 30), str(etime - 40), str(Day), Venue)
+                Periods[key] = key
+
+# Convert dictionary values to a list
+unique_periods = list(Periods.values())
 
 def compare(p):
     if "Lab" in p[0]:
         return p[0][:-4] + p[1]
     return p[0] + p[1]
 
-
-Periods.sort(key=compare)
+unique_periods.sort(key=compare)
 
 file = open("Data.js", "w")
 file.write("Courses = [\n")
-for P in Periods:
+for P in unique_periods:
     file.write('\t["' + '","'.join(P) + '"],\n')
 file.write("]\n")
 file.close()

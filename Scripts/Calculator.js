@@ -161,39 +161,48 @@ function PrintTable(TimeTable){
     Pdiv.appendChild(htbr);
 }
 
-function GenerateTable(Filtered, Depth, TimeTable){
-    if (Depth == Filtered.length){
+function GenerateTable(Filtered, Depth, TimeTable) {
+    if (Depth == Filtered.length) {
         PrintTable(TimeTable);
         return;
     }
+
     for (let i = 0; i < Filtered[Depth].length; i++) {
         let clash = false;
+
         for (let j = 0; j < Filtered[Depth][i].length; j++) {
-            var stime = Math.floor(parseInt(Filtered[Depth][i][j][2])/90);
-            var etime = Math.ceil(parseInt(Filtered[Depth][i][j][3])/90);
+            var stime = Math.floor(parseInt(Filtered[Depth][i][j][2]) / 90);
+            var etime = Math.ceil(parseInt(Filtered[Depth][i][j][3]) / 90);
+
             for (let k = stime; k < etime; k++) {
-                if (TimeTable[parseInt(Filtered[Depth][i][j][4])][k] == "-"){
-                    TimeTable[parseInt(Filtered[Depth][i][j][4])][k] = Filtered[Depth][i][j][0] + "\n" + Filtered[Depth][i][j][1] + "\n" + Filtered[Depth][i][j][5];
-                }
-                else{
+                if (TimeTable[parseInt(Filtered[Depth][i][j][4])][k] !== "-") {
                     clash = true;
+                    break;  // Exit the loop if a clash is found
                 }
             }
         }
-        if (clash == false){
-            GenerateTable(Filtered, Depth + 1, TimeTable);
-        }
-        for (let j = 0; j < Filtered[Depth][i].length; j++) {
-            var stime = Math.floor(parseInt(Filtered[Depth][i][j][2])/90);
-            var etime = Math.ceil(parseInt(Filtered[Depth][i][j][3])/90);
-            for (let k = stime; k < etime; k++) {
-                if (TimeTable[parseInt(Filtered[Depth][i][j][4])][k] == Filtered[Depth][i][j][0] + "\n" + Filtered[Depth][i][j][1] + "\n" + Filtered[Depth][i][j][5]){
-                    TimeTable[parseInt(Filtered[Depth][i][j][4])][k] = "-";
+
+        if (!clash) {
+            // Make a copy of the timetable to avoid modifying it for subsequent recursive calls
+            let updatedTimeTable = JSON.parse(JSON.stringify(TimeTable));
+
+            // Update the timetable with the current course
+            for (let j = 0; j < Filtered[Depth][i].length; j++) {
+                var stime = Math.floor(parseInt(Filtered[Depth][i][j][2]) / 90);
+                var etime = Math.ceil(parseInt(Filtered[Depth][i][j][3]) / 90);
+
+                for (let k = stime; k < etime; k++) {
+                    updatedTimeTable[parseInt(Filtered[Depth][i][j][4])][k] =
+                        Filtered[Depth][i][j][0] + "\n" + Filtered[Depth][i][j][1] + "\n" + Filtered[Depth][i][j][5];
                 }
             }
+
+            // Continue with the next level of recursion
+            GenerateTable(Filtered, Depth + 1, updatedTimeTable);
         }
     }
 }
+
 
 function ExtractSections()
 {
